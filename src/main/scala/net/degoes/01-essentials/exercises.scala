@@ -10,43 +10,46 @@ object types {
   //
   // List all values of the type `Unit`.
   //
-  val UnitValues: Set[Unit] = ???
+  val UnitValues: Set[Unit] = Set(())
+
+  // Colors = { x | x is a color }
+  // { x | x is all people in the room that do not have black hair }
+
 
   //
   // EXERCISE 2
   //
   // List all values of the type `Nothing`.
   //
-  val NothingValues: Set[Nothing] = ???
+  val NothingValues: Set[Nothing] = Set()
 
   //
   // EXERCISE 3
   //
   // List all values of the type `Boolean`.
   //
-  val BoolValues: Set[Boolean] = ???
+  val BoolValues: Set[Boolean] = Set(true, false)
 
   //
   // EXERCISE 4
   //
   // List all values of the type `Either[Unit, Boolean]`.
   //
-  val EitherUnitBoolValues: Set[Either[Unit, Boolean]] = ???
+  val EitherUnitBoolValues: Set[Either[Unit, Boolean]] = Set(Left(()), Right(true), Right(false))
 
   //
   // EXERCISE 5
   //
   // List all values of the type `(Boolean, Boolean)`.
   //
-  val TupleBoolBoolValues: Set[(Boolean, Boolean)] =
-    ???
+  val TupleBoolBoolValues: Set[(Boolean, Boolean)] = Set((true, true), (false, false), (true, false), (false, true))
 
   //
   // EXERCISE 6
   //
   // List all values of the type `Either[Either[Unit, Unit], Unit]`.
   //
-  val EitherEitherUnitUnitUnitValues: Set[Either[Either[Unit, Unit], Unit]] = ???
+  val EitherEitherUnitUnitUnitValues: Set[Either[Either[Unit, Unit], Unit]] = Set(Right(()), Left(Left(())), Left(Right(())))
 
   //
   // EXERCISE 7
@@ -57,7 +60,7 @@ object types {
   //
   // List all the elements in `A * B`.
   //
-  val AProductB: Set[(Boolean, String)] = ???
+  val AProductB: Set[(Boolean, String)] = Set((true, "red"), (true, "green"), (true, "blue"), (false, "red"), (false, "green"), (false, "blue"))
 
   //
   // EXERCISE 8
@@ -68,7 +71,7 @@ object types {
   //
   // List all the elements in `A + B`.
   //
-  val ASumB: Set[Either[Boolean, String]] = ???
+  val ASumB: Set[Either[Boolean, String]] = Set(Left(false), Left(true), Right("red"), Right("green"), Right("blue"))
 
   //
   // EXERCISE 9
@@ -76,8 +79,8 @@ object types {
   // Create a product type of `Int` and `String`, representing the age and
   // name of a person.
   //
-  type Person1 = ???
-  case class Person2(/*  */)
+  type Person1 = (Int, String)
+  case class Person2(age: Int, name: String)
 
   //
   // EXERCISE 10
@@ -85,8 +88,8 @@ object types {
   // Prove that `A * 1` is equivalent to `A` by implementing the following two
   // functions.
   //
-  def to1[A](t: (A, Unit)): A = ???
-  def from1[A](a: A): (A, Unit) = ???
+  def to1[A](t: (A, Unit)): A = t._1
+  def from1[A](a: A): (A, Unit) = (a, ())
 
   //
   // EXERCISE 11
@@ -94,8 +97,8 @@ object types {
   // Prove that `A * 0` is equivalent to `0` by implementing the following two
   // functions.
   //
-  def to2[A](t: (A, Nothing)): Nothing = ???
-  def from2[A](n: Nothing): (A, Nothing) = ???
+  def to2[A](t: (A, Nothing)): Nothing = t._2
+  def from2[A](n: Nothing): (A, Nothing) = (n, n)
 
   //
   // EXERCISE 12
@@ -103,8 +106,10 @@ object types {
   // Create a sum type of `Int` and `String` representing the identifier of
   // a robot (a number) or the identifier of a person (a name).
   //
-  type Identifier1 = ???
+  type Identifier1 = Either[Int, String]
   sealed trait Identifier2
+  case class Robot(number: Int) extends Identifier2
+  case class Person(name: String) extends Identifier2
 
   //
   // EXERCISE 13
@@ -112,8 +117,15 @@ object types {
   // Prove that `A + 0` is equivalent to `A` by implementing the following two
   // functions.
   //
-  def to3[A](t: Either[A, Nothing]): A = ???
-  def from3[A](a: A): Either[A, Nothing] = ???
+  def to3[A](t: Either[A, Nothing]): A =
+    t match {
+      case Left(a) => a
+      case Right(n) => n
+    }
+  def from3[A](a: A): Either[A, Nothing] = Left(a)
+
+
+// ADT : sealed traits & case classes ONLY
 
   //
   // EXERCISE 14
@@ -121,7 +133,7 @@ object types {
   // Create either a sum type or a product type (as appropriate) to represent a
   // credit card, which has a number, an expiration date, and a security code.
   //
-  type CreditCard = ???
+  case class CreditCard(number: Int, expirationDate: String, securityCode: Int)
 
   //
   // EXERCISE 15
@@ -130,7 +142,10 @@ object types {
   // payment method, which could be a credit card, bank account, or
   // cryptocurrency.
   //
-  type PaymentMethod = ???
+  sealed trait PaymentMethod
+  case object CreditCard extends PaymentMethod
+  case object BankAccount extends PaymentMethod
+  case object Cryptocurrency extends PaymentMethod
 
   //
   // EXERCISE 16
@@ -138,7 +153,7 @@ object types {
   // Create either a sum type or a product type (as appropriate) to represent an
   // employee at a company, which has a title, salary, name, and employment date.
   //
-  type Employee = ???
+  case class Employee(name: String, company: String, title: String, salary: Int, employmentDate: String)
 
   //
   // EXERCISE 17
@@ -147,7 +162,50 @@ object types {
   // piece on a chess board, which could be a pawn, rook, bishop, knight,
   // queen, or king.
   //
-  type ChessPiece = ???
+  sealed trait ChessPiece
+  case object Pawn extends ChessPiece
+  case object Rook extends ChessPiece
+  case object Bishop extends ChessPiece
+  case object Knight extends ChessPiece
+  case object Queen extends ChessPiece
+  case object King extends ChessPiece
+
+  final case class Programmer private (level: Int)
+  object Programmer {
+    def apply(level: Int): Option[Programmer] =
+      if (level < 0) None
+      else Some(new Programmer(level))
+  }
+
+  // -----
+  // case class BankAccount(
+  // ownerId: String,
+  // balance: BigDecimal,
+  // accountType: String,
+  // openedDate: Instant)
+  final case class AccountId private (digits: Long)
+
+  final case class Balance private (balance: BigDecimal)
+  object Balance {
+    def apply(balance: BigDecimal): Option[Balance] =
+      if (balance < 0) None
+      else Some(new Balance(balance))
+  }
+
+  final case class OpenedDate private (date: String)
+  object OpenedDate {
+    def apply(date: String): Option[OpenedDate] =
+      Some(new OpenedDate(date))
+  }
+
+  sealed trait AccountType
+  case object AccountType
+
+  case class BankAccount (
+    ownerId: AccountId, 
+    balance: Balance,
+    accountType: String, 
+    openedDate: OpenedDate)
 
   //
   // EXERCISE 18
@@ -166,8 +224,10 @@ object functions {
   //
   // Convert the following non-function into a function.
   //
+  import scala.util.Try
   def parseInt1(s: String): Int = s.toInt
-  def parseInt2(s: String): ??? = ???
+  def parseInt2(s: String): Option[Int] = 
+    Try(s.toInt).toOption
 
   //
   // EXERCISE 2
@@ -176,7 +236,9 @@ object functions {
   //
   def arrayUpdate1[A](arr: Array[A], i: Int, f: A => A): Unit =
     arr.update(i, f(arr(i)))
-  def arrayUpdate2[A](arr: Array[A], i: Int, f: A => A): ??? = ???
+  def arrayUpdate2[A](arr: Array[A], i: Int, f: A => A): Array[A] =
+    ??? //if (i< 0 || i < arr.size) arr
+    //else arr.updated(i, f(arr(i)))
 
   //
   // EXERCISE 3
@@ -217,7 +279,9 @@ object functions {
     if (as.length == 0) println("Oh no, it's impossible!!!")
     as.head
   }
-  def head2[A](as: List[A]): ??? = ???
+  def head2[A](as: List[A]): Option[A] =
+    if (as.length > 0) Some(as.head)
+    else None
 
   //
   // EXERCISE 7
@@ -237,14 +301,26 @@ object functions {
     coffee
   }
   final case class Charge(account: Account, amount: Double)
-  def buyCoffee2(account: Account): (Coffee, Charge) = ???
+  def buyCoffee2(account: Account): (Coffee, Charge) = {
+    val coffee = Coffee()
+    (coffee, Charge(account, coffee.price))
+  }
+
+
+  // SCALAZZI
+  //
+  // 1. No null (use Option)
+  // 2. No throwing / catching (expections are useful for stack trace) (use Either, Try & friends)
+  // 3. Only "math" functions
+  // 4. No reflection (include type casing, e.g. `foo match { case (x : String) => ... }`)
+  // 5. No 'Any' methods (java.lang.Object, e.g. `equals`, `hashcode`, `toString`, sync-fns)
 
   //
   // EXERCISE 8
   //
   // Implement the following function under the Scalazzi subset of Scala.
   //
-  def printLine(line: String): Unit = ???
+  def printLine(line: String): Unit = ()
 
   //
   // EXERCISE 9
@@ -258,7 +334,7 @@ object functions {
   //
   // Implement the following function under the Scalazzi subset of Scala.
   //
-  def systemExit(code: Int): Unit = ???
+  def systemExit(code: Int): Unit = ()
 
   //
   // EXERCISE 11
@@ -273,7 +349,12 @@ object functions {
     println("To exit the help page, type `exit`.")
   }
   def printer2[A](println: String => A, combine: (A, A) => A): A =
-    ???
+    List(
+      "Welcome to the help page!",
+      "To list commands, type `commands`.",
+      "For help on a command, type `help <command>`",
+      "To exit the help page, type `exit`."
+    ).map(println).reduce(combine)
 
   //
   // EXERCISE 12
@@ -310,6 +391,8 @@ object functions {
     def finish(): List[List[Boolean]] =
       canvas.map(_.toList).toList
   }
+  // TODO case class CanvasState(x: Int, y: Int, canvas: List[List[Boolean]])
+  //type DrawCommand = CanvasState => CanvasState
   def draw2(size: Int /* ... */): ??? = ???
 }
 
@@ -320,7 +403,7 @@ object higher_order {
   // Implement the following higher-order function.
   //
   def fanout[A, B, C](f: A => B, g: A => C): A => (B, C) =
-    ???
+    (a: A) => (f(a), g(a))
 
   //
   // EXERCISE 2
@@ -328,7 +411,7 @@ object higher_order {
   // Implement the following higher-order function.
   //
   def cross[A, B, C, D](f: A => B, g: C => D): (A, C) => (B, D) =
-    ???
+    (a: A, c: C) => (f(a), g(c))
 
   //
   // EXERCISE 3
@@ -336,7 +419,10 @@ object higher_order {
   // Implement the following higher-order function.
   //
   def either[A, B, C](f: A => B, g: C => B): Either[A, C] => B =
-    ???
+    (e: Either[A, C]) => e match {
+      case Left(a) => f(a)
+      case Right(c) => g(c)
+    }
 
   //
   // EXERCISE 4
@@ -344,7 +430,10 @@ object higher_order {
   // Implement the following higher-order function.
   //
   def choice[A, B, C, D](f: A => B, g: C => D): Either[A, C] => Either[B, D] =
-    ???
+    (e: Either[A, C]) => e match {
+      case Left(a) => Left(f(a))
+      case Right(c) => Right(g(c))
+    }
 
   //
   // EXERCISE 5
@@ -352,7 +441,7 @@ object higher_order {
   // Implement the following higher-order function.
   //
   def compose[A, B, C](f: B => C, g: A => B): A => C =
-    ???
+    (a: A) => f(g(a))
 
   //
   // EXERCISE 6
@@ -362,14 +451,20 @@ object higher_order {
   //
   def alt[E1, E2, A, B](l: Parser[E1, A], r: E1 => Parser[E2, B]):
     Parser[(E1, E2), Either[A, B]] =
-      ???
+      Parser((s: String) => l.run(s) match {
+        case Left(e1) => r(e1).run(s) match {
+          case Left(e2) => Left((e1, e2))
+          case Right((s, b)) => Right((s, Right(b))) // shadowing names ensures you do not use the wrong String
+        }
+        case Right((s, a)) => Right((s, Left(a)))
+      })
 
   case class Parser[+E, +A](run: String => Either[E, (String, A)])
   object Parser {
     final def fail[E](e: E): Parser[E, Nothing] =
       Parser(_ => Left(e))
 
-    final def point[A](a: => A): Parser[Nothing, A] =
+    final def succeed[A](a: => A): Parser[Nothing, A] =
       Parser(input => Right((input, a)))
 
     final def char: Parser[Unit, Char] =
@@ -387,7 +482,7 @@ object poly_functions {
   // `snd` that returns the second element out of any pair of `A` and `B`.
   //
   object snd {
-    def apply[A, B](t: (A, B)): B = ???
+    def apply[A, B](t: (A, B)): B = t._2
   }
   snd((1, "foo")) // "foo"
   snd((true, List(1, 2, 3))) // List(1, 2, 3)
@@ -399,9 +494,12 @@ object poly_functions {
   // function `A => A`, and apply it repeatedly to a starting value
   // `A` the specified number of times.
   //
+  import scala.annotation.tailrec
   object repeat {
+    @tailrec
     def apply[A](n: Int)(a: A, f: A => A): A =
-      ???
+      if (n <= 0) a
+      else repeat(n-1)(f(a), f)
   }
   repeat[   Int](100)( 0, _ +   1) // 100
   repeat[String]( 10)("", _ + "*") // "**********"
@@ -412,7 +510,7 @@ object poly_functions {
   // Count the number of unique implementations of the following method.
   //
   def countExample1[A, B](a: A, b: B): Either[A, B] = ???
-  val countExample1Answer = ???
+  val countExample1Answer = 2
 
   //
   // EXERCISE 4
@@ -421,7 +519,7 @@ object poly_functions {
   //
   def countExample2[A, B](f: A => B, g: A => B, a: A): B =
     ???
-  val countExample2Answer = ???
+  val countExample2Answer = 2
 
   //
   // EXERCISE 5
@@ -444,8 +542,12 @@ object poly_functions {
     l: List[String],
     by: String => String)(
       reducer: (String, List[String]) => String):
-      Map[String, String] =
-        ???
+      Map[String, String] = {
+        val events = l.map(by)
+        val dates = events.toSet
+        dates.map(d => (d, reducer(d, events.filter(e => e == d)))).toMap
+      }
+
   groupBy1(Data, By)(Reducer) == Expected
 
   //
@@ -455,9 +557,10 @@ object poly_functions {
   // the polymorphic function. Compare to the original.
   //
   object groupBy2 {
-
+    def apply[A, B, C](l: List[A], by: A => B)(reducer: (B, List[A]) => C): Map[B, C] =
+      l.groupBy(by).map{case (k, vs) => (k, reducer(k, vs))}.toMap
   }
-  // groupBy2(Data, By)(Reducer) == Expected
+  groupBy2(Data, By)(Reducer) == Expected
 }
 
 object higher_kinded {
@@ -476,7 +579,7 @@ object higher_kinded {
   // Identify a type constructor that takes one type parameter of kind `*`
   // (i.e. has kind `* => *`), and place your answer inside the square brackets.
   //
-  type Answer1 = `* => *`[???]
+  type Answer1 = `* => *`[List]
 
   //
   // EXERCISE 2
@@ -484,36 +587,36 @@ object higher_kinded {
   // Identify a type constructor that takes two type parameters of kind `*` (i.e.
   // has kind `[*, *] => *`), and place your answer inside the square brackets.
   //
-  type Answer2 = `[*, *] => *`[????]
+  type Answer2 = `[*, *] => *`[Either]
 
   //
   // EXERCISE 3
   //
   // Create a new type called `Answer3` that has kind `*`.
   //
-  trait Answer3 /*[]*/
+  trait Answer3
 
   //
   // EXERCISE 4
   //
   // Create a trait with kind `[*, *, *] => *`.
   //
-  trait Answer4 /*[]*/
+  trait Answer4[ZIO]
 
   //
   // EXERCISE 5
   //
   // Create a new type that has kind `(* => *) => *`.
   //
-  type NewType1 /* ??? */
-  type Answer5 = `(* => *) => *`[?????]
+  type NewType1[A[_]]
+  type Answer5 = `(* => *) => *`[NewType1]
 
   //
   // EXERCISE 6
   //
   // Create a trait with kind `[* => *, (* => *) => *] => *`.
   //
-  trait Answer6 /*[]*/
+  trait Answer6[F[_], G[F[_]]]
 
   //
   // EXERCISE 7
@@ -562,7 +665,10 @@ object higher_kinded {
     // This method will return the number of `A`s inside `fa`.
     def size[A](fa: F[A]): Int
   }
-  val ListSized: Sized[List] = ???
+  val ListSized: Sized[List] = 
+    new Sized[List] {
+      def size[A](fa: List[A]): Int = fa.length
+    }
 
   //
   // EXERCISE 9
@@ -571,7 +677,9 @@ object higher_kinded {
   // parameter to `String`.
   //
   val MapStringSized: Sized[Map[String, ?]] =
-    ???
+    new Sized[Map[String, ?]] {
+      def size[A](fa: Map[String, A]): Int = fa.size
+    }
 
   //
   // EXERCISE 10
@@ -592,6 +700,14 @@ object higher_kinded {
 
 object tc_motivating {
   /*
+
+  WHY?!
+  * Reuse
+  * Reduce space of implementations
+
+  --> Identify and describe structure across a range of data types
+  --> Throw away structure by polymorphism, regain it using type classes
+
   A type class is a tuple of three things:
 
   1. A set of types and / or type constructors.
