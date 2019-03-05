@@ -730,16 +730,17 @@ object tc_motivating {
     def lt(l: A, r: A): Boolean
 
     final def transitivityLaw(a: A, b: A, c: A): Boolean =
-      (lt(a, b) && lt(b, c) == lt(a, c)) ||
-      (!lt(a, b) || !lt(b, c))
+      lt(a, c) || !lt(a, b) || !lt(b, c)
   }
   implicit class LessThanSyntax[A](l: A) {
     def < (r: A)(implicit A: LessThan[A]): Boolean = A.lt(l, r)
     def >= (r: A)(implicit A: LessThan[A]): Boolean = !A.lt(l, r)
   }
+  // companion object
   object LessThan {
     def apply[A](implicit A: LessThan[A]): LessThan[A] = A
 
+    // define instances of existing types in the companion object (for your own typeclasses)
     implicit val LessThanInt: LessThan[Int] = new LessThan[Int] {
       def lt(l: Int, r: Int): Boolean = l < r
     }
@@ -752,6 +753,12 @@ object tc_motivating {
           case (l :: ls, r :: rs) => l < r && lt(ls, rs)
         }
     }
+  }
+
+  // for existing typeclasses put your instance in an object
+  final case class PersonX(name: String)
+  object PersonX {
+    implicit val PersonXLessThan: LessThan[PersonX] = ???
   }
 
   def sort[A: LessThan](l: List[A]): List[A] = l match {
@@ -791,6 +798,15 @@ object hashmap {
   }
   implicit class EqSyntax[A](l: A) {
     def === (r: A)(implicit A: Eq[A]): Boolean = A.eq(l, r)
+  }
+
+  // wrapper class (we want to have a case-insenstive instance as well)
+  final case class IgnoreCase(value: String)
+  object IgnoreCase {
+    implicit val EqIgnoreCase: Eq[IgnoreCase] =
+      new Eq[IgnoreCase] {
+        def eq(l: IgnoreCase, r: IgnoreCase): Boolean = l.value.toLowerCase == r.value.toLowerCase
+      }
   }
 
   trait Hash[A] extends Eq[A] {
@@ -974,7 +990,8 @@ object typeclasses {
 
       sort1(lessThan) ++ List(x) ++ sort1(notLessThan)
   }
-  def sort2[A: Ord](l: List[A]): List[A] = ???
+  def sort2[A: Ord](l: List[A]): List[A] =
+    l.sortWith(implicitly[Ord[A]].compare(_, _) != GT)
 
   //
   // EXERCISE 2
@@ -992,22 +1009,34 @@ object typeclasses {
   object PathLike {
     def apply[A](implicit A: PathLike[A]): PathLike[A] = A
   }
+
   sealed trait MyPath
+  case object Root extends MyPath
+  case class Node(parent: MyPath, name: String) extends MyPath
+
   object MyPath {
     implicit val MyPathPathLike: PathLike[MyPath] =
       new PathLike[MyPath] {
-        def child(parent: MyPath, name: String): MyPath = ???
-        def parent(node: MyPath): Option[MyPath] = ???
-        def root: MyPath = ???
+        def child(parent: MyPath, name: String): MyPath = Node(parent, name)
+        def parent(node: MyPath): Option[MyPath] = node match {
+          case Root => None
+          case Node(parent, _) => Some(parent)
+        }
+        def root: MyPath = Root
       }
-    }
+  }
 
   //
   // EXERCISE 3
   //
   // Create an instance of the `PathLike` type class for `java.io.File`.
   //
-  implicit val FilePathLike: PathLike[java.io.File] = ???
+  implicit val FilePathLike: PathLike[java.io.File] =
+      new PathLike[java.io.File] {
+        def child(parent: java.io.File, name: String): java.io.File = new java.io.File(parent, name)
+        def parent(node: java.io.File): Option[java.io.File] = Option(node.getParentFile)
+        def root: java.io.File = new java.io.File("/")
+      }
 
   //
   // EXERCISE 4
@@ -1015,10 +1044,10 @@ object typeclasses {
   // Create two laws for the `PathLike` type class.
   //
   trait PathLikeLaws[A] extends PathLike[A] {
-    def law1: Boolean = ???
+    def law1: Boolean = parent(root) == None
 
     def law2(node: A, name: String, assertEquals: (A, A) => Boolean): Boolean =
-      ???
+      parent(child(node, name)).map(assertEquals(node, _)).getOrElse(false)
   }
 
   //
@@ -1029,10 +1058,10 @@ object typeclasses {
   //
   implicit class PathLikeSyntax[A](a: A) {
     def / (name: String)(implicit A : PathLike[A]): A =
-      ???
+      A.child(a, name)
 
     def parent(implicit A : PathLike[A]): Option[A] =
-      ???
+      A.parent(a)
   }
   def root[A: PathLike]: A = PathLike[A].root
 
